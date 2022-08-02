@@ -14,7 +14,7 @@ import (
 	"sync"
 )
 
-// CmdLine is alias for [][]byte, represents a command line
+// CmdLine 代表命令
 type CmdLine = [][]byte
 
 const (
@@ -26,20 +26,21 @@ type payload struct {
 	dbIndex int
 }
 
-// AofHandler receive msgs from channel and write to AOF file
+// AofHandler 从channel中获取数据，向AOF文件中写入数据
 type AofHandler struct {
 	db          databaseface.Database
 	aofChan     chan *payload
 	aofFile     *os.File
 	aofFilename string
-	// aof goroutine will send msg to main goroutine through this channel when aof tasks finished and ready to shutdown
+	// 当AOF 执行完毕时，AOF goroutine会通过这个管道向主程序发送消息
 	aofFinished chan struct{}
-	// pause aof for start/finish aof rewrite progress
+	// 解析 AOF 文件的时候，需要加锁
 	pausingAof sync.RWMutex
-	currentDB  int
+	// 记录上一条指令工作在哪个db，以此来判断需不需要select
+	currentDB int
 }
 
-// NewAOFHandler creates a new aof.AofHandler
+// NewAOFHandler 新建一个新的 aof.AofHandler
 func NewAOFHandler(db databaseface.Database) (*AofHandler, error) {
 	handler := &AofHandler{}
 	handler.aofFilename = config.Properties.AppendFilename
@@ -58,7 +59,7 @@ func NewAOFHandler(db databaseface.Database) (*AofHandler, error) {
 	return handler, nil
 }
 
-// AddAof send command to aof goroutine through channel
+// AddAof 将命令塞到 channel 里
 func (handler *AofHandler) AddAof(dbIndex int, cmdLine CmdLine) {
 	if config.Properties.AppendOnly && handler.aofChan != nil {
 		handler.aofChan <- &payload{
@@ -68,22 +69,23 @@ func (handler *AofHandler) AddAof(dbIndex int, cmdLine CmdLine) {
 	}
 }
 
-// handleAof listen aof channel and write into file
+// handleAof 从 channel 里读命令并且将命令写入 AOF 文件
 func (handler *AofHandler) handleAof() {
-	// serialized execution
 	handler.currentDB = 0
 	for p := range handler.aofChan {
-		handler.pausingAof.RLock() // prevent other goroutines from pausing aof
+		//防止其他 goroutine 暂停 aof 过程
+		handler.pausingAof.RLock()
 		if p.dbIndex != handler.currentDB {
-			// select db
+			// 切换db
 			data := reply.MakeMultiBulkReply(utils.ToCmdLine("SELECT", strconv.Itoa(p.dbIndex))).ToBytes()
 			_, err := handler.aofFile.Write(data)
 			if err != nil {
 				logger.Warn(err)
-				continue // skip this command
+				continue
 			}
 			handler.currentDB = p.dbIndex
 		}
+		// 将用户的指令变成 RESP 协议的格式
 		data := reply.MakeMultiBulkReply(p.cmdLine).ToBytes()
 		_, err := handler.aofFile.Write(data)
 		if err != nil {
@@ -94,9 +96,9 @@ func (handler *AofHandler) handleAof() {
 	handler.aofFinished <- struct{}{}
 }
 
-// LoadAof read aof file
+// LoadAof 读 aof 文件
 func (handler *AofHandler) LoadAof(maxBytes int) {
-	// delete aofChan to prevent write again
+	// 删除 aofChan 防止再次重写
 	aofChan := handler.aofChan
 	handler.aofChan = nil
 	defer func(aofChan chan *payload) {
@@ -119,8 +121,10 @@ func (handler *AofHandler) LoadAof(maxBytes int) {
 	} else {
 		reader = file
 	}
+	// 解析AOF文件
 	ch := parser.ParseStream(reader)
-	fakeConn := &connection.FakeConn{} // only used for save dbIndex
+	//用来记录工作在哪个db，以判断用不用切换db
+	fakeConn := &connection.FakeConn{}
 	for p := range ch {
 		if p.Err != nil {
 			if p.Err == io.EOF {
@@ -145,11 +149,12 @@ func (handler *AofHandler) LoadAof(maxBytes int) {
 	}
 }
 
-// Close gracefully stops aof persistence procedure
+// Close 优雅地停止一个持久化过程
 func (handler *AofHandler) Close() {
 	if handler.aofFile != nil {
 		close(handler.aofChan)
-		<-handler.aofFinished // wait for aof finished
+		//等待AOF过程结束
+		<-handler.aofFinished
 		err := handler.aofFile.Close()
 		if err != nil {
 			logger.Warn(err)

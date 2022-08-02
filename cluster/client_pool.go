@@ -29,17 +29,19 @@ func (f *connectionFactory) DestroyObject(ctx context.Context, object *pool.Pool
 	return nil
 }
 
+//go-commons-pool 中未用到的对象对象处理机制
+
 func (f *connectionFactory) ValidateObject(ctx context.Context, object *pool.PooledObject) bool {
-	// do validate
+	//校验对象
 	return true
 }
 
 func (f *connectionFactory) ActivateObject(ctx context.Context, object *pool.PooledObject) error {
-	// do activate
+	//激活对象
 	return nil
 }
 
 func (f *connectionFactory) PassivateObject(ctx context.Context, object *pool.PooledObject) error {
-	// do passivate
+	//钝化对象
 	return nil
 }

@@ -1,9 +1,9 @@
 package dict
 
-// Consumer is used to traversal dict, if it returns false the traversal will be break
+// Consumer 用来遍历字典，如果它返回false遍历将跳出
 type Consumer func(key string, val interface{}) bool
 
-// Dict is interface of a key-value data structure
+// Dict 是键值对数据结构的接口
 type Dict interface {
 	Get(key string) (val interface{}, exists bool)
 	Len() int

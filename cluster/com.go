@@ -10,6 +10,7 @@ import (
 	"strconv"
 )
 
+// 拿到与该节点的连接（先拿到与该节点的连接池，再从连接池里borrow一个连接）
 func (cluster *ClusterDatabase) getPeerClient(peer string) (*client.Client, error) {
 	factory, ok := cluster.peerConnection[peer]
 	if !ok {
@@ -26,6 +27,7 @@ func (cluster *ClusterDatabase) getPeerClient(peer string) (*client.Client, erro
 	return conn, nil
 }
 
+// 把连接换回连接池，防止连接耗尽
 func (cluster *ClusterDatabase) returnPeerClient(peer string, peerClient *client.Client) error {
 	connectionFactory, ok := cluster.peerConnection[peer]
 	if !ok {
@@ -34,9 +36,9 @@ func (cluster *ClusterDatabase) returnPeerClient(peer string, peerClient *client
 	return connectionFactory.ReturnObject(context.Background(), peerClient)
 }
 
-// relay relays command to peer
-// select db by c.GetDBIndex()
-// cannot call Prepare, Commit, execRollback of self node
+// relay 将命令转发到节点
+// 通过c.GetDBIndex()拿到数据库id，并转换到该数据库
+// 不能调用 Prepare, Commit, execRollback等请求
 func (cluster *ClusterDatabase) relay(peer string, c resp.Connection, args [][]byte) resp.Reply {
 	if peer == cluster.self {
 		// to self db
@@ -53,7 +55,7 @@ func (cluster *ClusterDatabase) relay(peer string, c resp.Connection, args [][]b
 	return peerClient.Send(args)
 }
 
-// broadcast broadcasts command to all node in cluster
+// broadcast 广播命令到集群中的所有节点
 func (cluster *ClusterDatabase) broadcast(c resp.Connection, args [][]byte) map[string]resp.Reply {
 	result := make(map[string]resp.Reply)
 	for _, node := range cluster.nodes {

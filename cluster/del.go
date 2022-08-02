@@ -5,8 +5,8 @@ import (
 	"github.com/jujunwang/Mudis/resp/reply"
 )
 
-// Del atomically removes given writeKeys from cluster, writeKeys can be distributed on any node
-// if the given writeKeys are distributed on different node, Del will use try-commit-catch to remove them
+// Del从集群中原子地移除给定的writekey, writekey可以分布在任何节点上
+// 如果给定的writekey分布在不同的节点上，Del将使用try-commit-catch删除它们
 func Del(cluster *ClusterDatabase, c resp.Connection, args [][]byte) resp.Reply {
 	replies := cluster.broadcast(c, args)
 	var errReply reply.ErrorReply

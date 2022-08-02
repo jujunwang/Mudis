@@ -5,7 +5,7 @@ import (
 	"github.com/jujunwang/Mudis/resp/reply"
 )
 
-// FlushDB removes all data in current database
+// FlushDB 删除当前数据库的所有数据
 func FlushDB(cluster *ClusterDatabase, c resp.Connection, args [][]byte) resp.Reply {
 	replies := cluster.broadcast(c, args)
 	var errReply reply.ErrorReply

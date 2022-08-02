@@ -1,24 +1,24 @@
 package dict
 
-// SimpleDict wraps a map, it is not thread safe
+// SimpleDict 封装一个map，它不是线程安全的
 type SimpleDict struct {
 	m map[string]interface{}
 }
 
-// MakeSimple makes a new map
+// MakeSimple 新建一个map
 func MakeSimple() *SimpleDict {
 	return &SimpleDict{
 		m: make(map[string]interface{}),
 	}
 }
 
-// Get returns the binding value and whether the key is exist
+// Get 返回绑定值以及该键是否存在
 func (dict *SimpleDict) Get(key string) (val interface{}, exists bool) {
 	val, ok := dict.m[key]
 	return val, ok
 }
 
-// Len returns the number of dict
+// Len 返回 dict 的长度
 func (dict *SimpleDict) Len() int {
 	if dict.m == nil {
 		panic("m is nil")
@@ -26,7 +26,7 @@ func (dict *SimpleDict) Len() int {
 	return len(dict.m)
 }
 
-// Put puts key value into dict and returns the number of new inserted key-value
+// Put 将键值放入字典并返回新插入键值对的个数
 func (dict *SimpleDict) Put(key string, val interface{}) (result int) {
 	_, existed := dict.m[key]
 	dict.m[key] = val
@@ -36,7 +36,7 @@ func (dict *SimpleDict) Put(key string, val interface{}) (result int) {
 	return 1
 }
 
-// PutIfAbsent puts value if the key is not exists and returns the number of updated key-value
+// PutIfAbsent 如果键不存在则返回值，并返回更新的键值对的个数
 func (dict *SimpleDict) PutIfAbsent(key string, val interface{}) (result int) {
 	_, existed := dict.m[key]
 	if existed {
@@ -46,7 +46,7 @@ func (dict *SimpleDict) PutIfAbsent(key string, val interface{}) (result int) {
 	return 1
 }
 
-// PutIfExists puts value if the key is exist and returns the number of inserted key-value
+// PutIfExists 如果键存在，则写入值，并返回插入键值对的个数
 func (dict *SimpleDict) PutIfExists(key string, val interface{}) (result int) {
 	_, existed := dict.m[key]
 	if existed {
@@ -56,7 +56,7 @@ func (dict *SimpleDict) PutIfExists(key string, val interface{}) (result int) {
 	return 0
 }
 
-// Remove removes the key and return the number of deleted key-value
+// Remove 删除键并返回已删除键值对的个数
 func (dict *SimpleDict) Remove(key string) (result int) {
 	_, existed := dict.m[key]
 	delete(dict.m, key)
@@ -66,7 +66,7 @@ func (dict *SimpleDict) Remove(key string) (result int) {
 	return 0
 }
 
-// Keys returns all keys in dict
+// Keys 返回dict中的所有key
 func (dict *SimpleDict) Keys() []string {
 	result := make([]string, len(dict.m))
 	i := 0
@@ -76,7 +76,7 @@ func (dict *SimpleDict) Keys() []string {
 	return result
 }
 
-// ForEach traversal the dict
+// ForEach 遍历dict
 func (dict *SimpleDict) ForEach(consumer Consumer) {
 	for k, v := range dict.m {
 		if !consumer(k, v) {
@@ -85,7 +85,7 @@ func (dict *SimpleDict) ForEach(consumer Consumer) {
 	}
 }
 
-// RandomKeys randomly returns keys of the given number, may contain duplicated key
+// RandomKeys 随机返回给定数字的键，可能包含重复的键
 func (dict *SimpleDict) RandomKeys(limit int) []string {
 	result := make([]string, limit)
 	for i := 0; i < limit; i++ {
@@ -97,7 +97,7 @@ func (dict *SimpleDict) RandomKeys(limit int) []string {
 	return result
 }
 
-// RandomDistinctKeys randomly returns keys of the given number, won't contain duplicated key
+// RandomDistinctKeys 随机返回给定数字的键，不会包含重复的键
 func (dict *SimpleDict) RandomDistinctKeys(limit int) []string {
 	size := limit
 	if size > len(dict.m) {
@@ -115,7 +115,7 @@ func (dict *SimpleDict) RandomDistinctKeys(limit int) []string {
 	return result
 }
 
-// Clear removes all keys in dict
+// Clear 清空dict中的key
 func (dict *SimpleDict) Clear() {
 	*dict = *MakeSimple()
 }

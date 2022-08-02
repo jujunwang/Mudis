@@ -1,7 +1,7 @@
 package tcp
 
 /**
- * A tcp handler
+ * 一个tcp处理器
  */
 
 import (
@@ -17,14 +17,14 @@ import (
 	"time"
 )
 
-// Config stores tcp handler properties
+// Config 存储tcp处理程序的配置
 type Config struct {
 	Address    string        `yaml:"address"`
 	MaxConnect uint32        `yaml:"max-connect"`
 	Timeout    time.Duration `yaml:"timeout"`
 }
 
-// ListenAndServeWithSignal binds port and handle requests, blocking until receive stop signal
+// ListenAndServeWithSignal 绑定端口和处理请求，阻塞直到收到停止信号
 func ListenAndServeWithSignal(cfg *Config, handler tcp.Handler) error {
 	closeChan := make(chan struct{})
 	sigCh := make(chan os.Signal)
@@ -45,19 +45,19 @@ func ListenAndServeWithSignal(cfg *Config, handler tcp.Handler) error {
 	return nil
 }
 
-// ListenAndServe binds port and handle requests, blocking until close
+// ListenAndServe 绑定端口和处理请求，阻塞直到关闭
 func ListenAndServe(listener net.Listener, handler tcp.Handler, closeChan <-chan struct{}) {
 	// listen signal
 	go func() {
 		<-closeChan
 		logger.Info("shutting down...")
-		_ = listener.Close() // listener.Accept() will return err immediately
-		_ = handler.Close()  // close connections
+		_ = listener.Close() // listener.Accept() 会立即返回错误
+		_ = handler.Close()  // close 连接
 	}()
 
-	// listen port
+	// 监听端口
 	defer func() {
-		// close during unexpected error
+		// 发生意外错误时关闭
 		_ = listener.Close()
 		_ = handler.Close()
 	}()
@@ -68,7 +68,7 @@ func ListenAndServe(listener net.Listener, handler tcp.Handler, closeChan <-chan
 		if err != nil {
 			break
 		}
-		// handle
+		// 传递给处理器
 		logger.Info("accept link")
 		waitDone.Add(1)
 		go func() {

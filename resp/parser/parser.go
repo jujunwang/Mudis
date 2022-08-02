@@ -12,13 +12,13 @@ import (
 	"strings"
 )
 
-// Payload stores redis.Reply or error
+// Payload 存储 redis.Reply 和 error
 type Payload struct {
 	Data resp.Reply
 	Err  error
 }
 
-// ParseStream reads data from io.Reader and send payloads through channel
+// ParseStream 从 io.Reader 读数据，并且向channel发送解析完成的payloads
 func ParseStream(reader io.Reader) <-chan *Payload {
 	ch := make(chan *Payload)
 	go parse0(reader, ch)
@@ -26,6 +26,7 @@ func ParseStream(reader io.Reader) <-chan *Payload {
 }
 
 type readState struct {
+	// 表示解析的是单行/多行类型的数据
 	readingMultiLine  bool
 	expectedArgsCount int
 	msgType           byte
@@ -33,6 +34,7 @@ type readState struct {
 	bulkLen           int64
 }
 
+// 用来表示解析是否完成
 func (s *readState) finished() bool {
 	return s.expectedArgsCount > 0 && len(s.args) == s.expectedArgsCount
 }
@@ -48,18 +50,18 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 	var err error
 	var msg []byte
 	for {
-		// read line
+		// 读命令
 		var ioErr bool
 		msg, ioErr, err = readLine(bufReader, &state)
 		if err != nil {
-			if ioErr { // encounter io err, stop read
+			if ioErr { // 读到 io 错误, 停止读取
 				ch <- &Payload{
 					Err: err,
 				}
 				close(ch)
 				return
 			}
-			// protocol err, reset read state
+			// 协议err，重置读状态
 			ch <- &Payload{
 				Err: err,
 			}
@@ -67,63 +69,63 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 			continue
 		}
 
-		// parse line
+		// 解析命令
 		if !state.readingMultiLine {
-			// receive new response
+			// 接收新的响应
 			if msg[0] == '*' {
-				// multi bulk reply
+				// 多行类型
 				err = parseMultiBulkHeader(msg, &state)
 				if err != nil {
 					ch <- &Payload{
 						Err: errors.New("protocol error: " + string(msg)),
 					}
-					state = readState{} // reset state
+					state = readState{} // 重置状态
 					continue
 				}
 				if state.expectedArgsCount == 0 {
 					ch <- &Payload{
 						Data: &reply.EmptyMultiBulkReply{},
 					}
-					state = readState{} // reset state
+					state = readState{} // 重置状态
 					continue
 				}
-			} else if msg[0] == '$' { // bulk reply
+			} else if msg[0] == '$' { // 多行类型reply
 				err = parseBulkHeader(msg, &state)
 				if err != nil {
 					ch <- &Payload{
 						Err: errors.New("protocol error: " + string(msg)),
 					}
-					state = readState{} // reset state
+					state = readState{} // 重置状态
 					continue
 				}
-				if state.bulkLen == -1 { // null bulk reply
+				if state.bulkLen == -1 { // 空的的多行类型reply
 					ch <- &Payload{
 						Data: &reply.NullBulkReply{},
 					}
-					state = readState{} // reset state
+					state = readState{} // 重置状态
 					continue
 				}
 			} else {
-				// single line reply
+				// 单行 reply
 				result, err := parseSingleLineReply(msg)
 				ch <- &Payload{
 					Data: result,
 					Err:  err,
 				}
-				state = readState{} // reset state
+				state = readState{} // 重置状态
 				continue
 			}
 		} else {
-			// receive following bulk reply
+			// 接收多行类型 reply
 			err = readBody(msg, &state)
 			if err != nil {
 				ch <- &Payload{
 					Err: errors.New("protocol error: " + string(msg)),
 				}
-				state = readState{} // reset state
+				state = readState{} // 重置
 				continue
 			}
-			// if sending finished
+			// 如果发送结束
 			if state.finished() {
 				var result resp.Reply
 				if state.msgType == '*' {
@@ -144,7 +146,7 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 func readLine(bufReader *bufio.Reader, state *readState) ([]byte, bool, error) {
 	var msg []byte
 	var err error
-	if state.bulkLen == 0 { // read normal line
+	if state.bulkLen == 0 { // 读正常命令行
 		msg, err = bufReader.ReadBytes('\n')
 		if err != nil {
 			return nil, true, err
@@ -152,7 +154,7 @@ func readLine(bufReader *bufio.Reader, state *readState) ([]byte, bool, error) {
 		if len(msg) == 0 || msg[len(msg)-2] != '\r' {
 			return nil, false, errors.New("protocol error: " + string(msg))
 		}
-	} else { // read bulk line (binary safe)
+	} else { // 读取批量行（二进制安全）
 		msg = make([]byte, state.bulkLen+2)
 		_, err = io.ReadFull(bufReader, msg)
 		if err != nil {
@@ -179,7 +181,7 @@ func parseMultiBulkHeader(msg []byte, state *readState) error {
 		state.expectedArgsCount = 0
 		return nil
 	} else if expectedLine > 0 {
-		// first line of multi bulk reply
+		// 多行类型回复，或者第一行类型回复
 		state.msgType = msg[0]
 		state.readingMultiLine = true
 		state.expectedArgsCount = int(expectedLine)
@@ -213,18 +215,18 @@ func parseSingleLineReply(msg []byte) (resp.Reply, error) {
 	str := strings.TrimSuffix(string(msg), "\r\n")
 	var result resp.Reply
 	switch msg[0] {
-	case '+': // status reply
+	case '+': // 状态回复
 		result = reply.MakeStatusReply(str[1:])
-	case '-': // err reply
+	case '-': // 错误回复
 		result = reply.MakeErrReply(str[1:])
-	case ':': // int reply
+	case ':': // int 类型回复
 		val, err := strconv.ParseInt(str[1:], 10, 64)
 		if err != nil {
 			return nil, errors.New("protocol error: " + string(msg))
 		}
 		result = reply.MakeIntReply(val)
 	default:
-		// parse as text protocol
+		// 解析为文本协议
 		strs := strings.Split(str, " ")
 		args := make([][]byte, len(strs))
 		for i, s := range strs {
@@ -235,12 +237,12 @@ func parseSingleLineReply(msg []byte) (resp.Reply, error) {
 	return result, nil
 }
 
-// read the non-first lines of multi bulk reply or bulk reply
+// read 多批量回复或批量回复的非第一行
 func readBody(msg []byte, state *readState) error {
 	line := msg[0 : len(msg)-2]
 	var err error
 	if line[0] == '$' {
-		// bulk reply
+		// 多行回复
 		state.bulkLen, err = strconv.ParseInt(string(line[1:]), 10, 64)
 		if err != nil {
 			return errors.New("protocol error: " + string(msg))

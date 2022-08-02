@@ -1,4 +1,4 @@
-// Package database is a memory database with redis compatible interface
+// database 包是一个具有redis兼容接口的内存数据库
 package database
 
 import (
@@ -9,7 +9,11 @@ import (
 	"strings"
 )
 
-// DB stores data and execute user's commands
+const (
+	dataDictSize = 1 << 16
+)
+
+// DB 存储数据、执行用户的命令
 type DB struct {
 	index int
 	// key -> DataEntity
@@ -17,23 +21,25 @@ type DB struct {
 	addAof func(CmdLine)
 }
 
-// ExecFunc is interface for command executor
-// args don't include cmd line
+// ExecFunc 是命令对应函数的接口
+// args 不包含 cmd 列，例如：set a b ——> a b
 type ExecFunc func(db *DB, args [][]byte) resp.Reply
 
-// CmdLine is alias for [][]byte, represents a command line
+// CmdLine 代表命令行
 type CmdLine = [][]byte
 
-// makeDB create DB instance
+// makeDB 创建 DB 实例
 func makeDB() *DB {
 	db := &DB{
-		data:   dict.MakeSyncDict(),
+		//data:   dict.MakeSyncDict(),
+		// 换用分段锁实现hashmap
+		data:   dict.MakeConcurrent(dataDictSize),
 		addAof: func(line CmdLine) {},
 	}
 	return db
 }
 
-// Exec executes command within one database
+// Exec 在单机数据库中执行命令
 func (db *DB) Exec(c resp.Connection, cmdLine [][]byte) resp.Reply {
 
 	cmdName := strings.ToLower(string(cmdLine[0]))
@@ -56,9 +62,11 @@ func validateArity(arity int, cmdArgs [][]byte) bool {
 	return argNum >= -arity
 }
 
-/* ---- data Access ----- */
+/* ---- 数据存取 ----- */
 
-// GetEntity returns DataEntity bind to given key
+//Entity 是db这一层操作(存取)的对象，指代 Mudis 的各种数据类型
+
+// GetEntity 返回绑定到给定键的DataEntity
 func (db *DB) GetEntity(key string) (*database.DataEntity, bool) {
 
 	raw, ok := db.data.Get(key)
@@ -69,27 +77,27 @@ func (db *DB) GetEntity(key string) (*database.DataEntity, bool) {
 	return entity, true
 }
 
-// PutEntity a DataEntity into DB
+// PutEntity 向 DB 中写入DataEntity
 func (db *DB) PutEntity(key string, entity *database.DataEntity) int {
 	return db.data.Put(key, entity)
 }
 
-// PutIfExists edit an existing DataEntity
+// PutIfExists 编辑已存在的数据库实体
 func (db *DB) PutIfExists(key string, entity *database.DataEntity) int {
 	return db.data.PutIfExists(key, entity)
 }
 
-// PutIfAbsent insert an DataEntity only if the key not exists
+// PutIfAbsent 当且仅当key不存在时插入一个 DataEntity
 func (db *DB) PutIfAbsent(key string, entity *database.DataEntity) int {
 	return db.data.PutIfAbsent(key, entity)
 }
 
-// Remove the given key from db
+// Remove 从数据库中删除指定key
 func (db *DB) Remove(key string) {
 	db.data.Remove(key)
 }
 
-// Removes the given keys from db
+// 一次性删除多个 key
 func (db *DB) Removes(keys ...string) (deleted int) {
 	deleted = 0
 	for _, key := range keys {
@@ -102,7 +110,7 @@ func (db *DB) Removes(keys ...string) (deleted int) {
 	return deleted
 }
 
-// Flush clean database
+// Flush 清空 database
 func (db *DB) Flush() {
 	db.data.Clear()
 }

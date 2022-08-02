@@ -5,7 +5,7 @@ import (
 	"github.com/jujunwang/Mudis/resp/reply"
 )
 
-// Ping the server
+// 向服务器发送PING
 func Ping(db *DB, args [][]byte) resp.Reply {
 	if len(args) == 0 {
 		return &reply.PongReply{}

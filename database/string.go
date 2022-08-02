@@ -21,7 +21,7 @@ func (db *DB) getAsString(key string) ([]byte, reply.ErrorReply) {
 	return bytes, nil
 }
 
-// execGet returns string value bound to the given key
+// execGet 返回对应 key 的 string
 func execGet(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	bytes, err := db.getAsString(key)
@@ -40,12 +40,12 @@ const (
 	updatePolicy        // set ex
 )
 
-// execSet sets string value and time to live to the given key
+// execSet 设置给定的 k v 键值对 和 ttl
 func execSet(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	value := args[1]
 	policy := upsertPolicy
-	// parse options
+	// 解析
 	if len(args) > 2 {
 		for i := 2; i < len(args); i++ {
 			arg := strings.ToUpper(string(args[i]))
@@ -86,7 +86,7 @@ func execSet(db *DB, args [][]byte) resp.Reply {
 	return &reply.NullBulkReply{}
 }
 
-// execSetNX sets string if not exists
+// execSetNX 当给定 key 不存在时，才 set
 func execSetNX(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	value := args[1]
@@ -98,7 +98,7 @@ func execSetNX(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(int64(result))
 }
 
-// execMSet sets multi key-value in database
+// execMSet 同时设置一个或多个 key-value 对
 func execMSet(db *DB, args [][]byte) resp.Reply {
 	if len(args)%2 != 0 {
 		return reply.MakeSyntaxErrReply()
@@ -120,7 +120,7 @@ func execMSet(db *DB, args [][]byte) resp.Reply {
 	return &reply.OkReply{}
 }
 
-// execMGet get multi key-value from database
+// execMGet 返回所有(一个或多个)给定 key 的值
 func execMGet(db *DB, args [][]byte) resp.Reply {
 	keys := make([]string, len(args))
 	for i, v := range args {
@@ -145,7 +145,7 @@ func execMGet(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeMultiBulkReply(result)
 }
 
-// execMSetNX sets multi key-value in database, only if none of the given keys exist
+// execMSetNX 同时设置一个或多个 key-value 对，当且仅当所有给定 key 都不存在
 func execMSetNX(db *DB, args [][]byte) resp.Reply {
 	// parse args
 	if len(args)%2 != 0 {
@@ -174,7 +174,7 @@ func execMSetNX(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(1)
 }
 
-// execGetSet sets value of a string-type key and returns its old value
+// execGetSet 设置字符串类型键的值并返回其原来的值
 func execGetSet(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	value := args[1]
@@ -191,7 +191,7 @@ func execGetSet(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeBulkReply(old)
 }
 
-// execIncr increments the integer value of a key by one
+// execIncr 对指定 key 的 value 加一
 func execIncr(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 
@@ -217,7 +217,7 @@ func execIncr(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(1)
 }
 
-// execIncrBy increments the integer value of a key by given value
+// execIncrBy 对指定 key 的 value 加给定值
 func execIncrBy(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	rawDelta := string(args[1])
@@ -249,7 +249,7 @@ func execIncrBy(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(delta)
 }
 
-// execDecr decrements the integer value of a key by one
+// execDecr 对指定 key 的 value 减一
 func execDecr(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 
@@ -276,7 +276,7 @@ func execDecr(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(-1)
 }
 
-// execDecrBy decrements the integer value of a key by onedecrement
+// execDecrBy 对指定 key 的 value 减指定值
 func execDecrBy(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	rawDelta := string(args[1])
@@ -308,7 +308,7 @@ func execDecrBy(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(-delta)
 }
 
-// execStrLen returns len of string value bound to the given key
+// execStrLen 返回指定 key 的 value 的长度
 func execStrLen(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	bytes, err := db.getAsString(key)
@@ -321,7 +321,7 @@ func execStrLen(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(int64(len(bytes)))
 }
 
-// execAppend sets string value to the given key
+// execAppend 对指定 key 进行修改
 func execAppend(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	bytes, err := db.getAsString(key)
@@ -336,8 +336,8 @@ func execAppend(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(int64(len(bytes)))
 }
 
-// execSetRange overwrites part of the string stored at key, starting at the specified offset.
-// If the offset is larger than the current length of the string at key, the string is padded with zero-bytes.
+// execSetRange 覆盖按键存储的字符串的一部分，从指定的偏移量开始。
+// 如果偏移量大于字符串 key 的当前长度，则字符串被填充为零字节
 func execSetRange(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	offset, errNative := strconv.ParseInt(string(args[1]), 10, 64)

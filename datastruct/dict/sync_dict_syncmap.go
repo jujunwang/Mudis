@@ -2,23 +2,23 @@ package dict
 
 import "sync"
 
-// SyncDict wraps a map, it is not thread safe
+// SyncDict 对sync.Map进行封装，它是线程安全的
 type SyncDict struct {
 	m sync.Map
 }
 
-// MakeSyncDict makes a new map
+// MakeSyncDict 新建一个map
 func MakeSyncDict() *SyncDict {
 	return &SyncDict{}
 }
 
-// Get returns the binding value and whether the key is exist
+// Get 返回绑定值以及该键是否存在
 func (dict *SyncDict) Get(key string) (val interface{}, exists bool) {
 	val, ok := dict.m.Load(key)
 	return val, ok
 }
 
-// Len returns the number of dict
+// Len 返回dict的长度
 func (dict *SyncDict) Len() int {
 	lenth := 0
 	dict.m.Range(func(k, v interface{}) bool {
@@ -28,7 +28,7 @@ func (dict *SyncDict) Len() int {
 	return lenth
 }
 
-// Put puts key value into dict and returns the number of new inserted key-value
+// Put 将键值放入字典并返回新插入键值对的个数
 func (dict *SyncDict) Put(key string, val interface{}) (result int) {
 	_, existed := dict.m.Load(key)
 	dict.m.Store(key, val)
@@ -38,7 +38,7 @@ func (dict *SyncDict) Put(key string, val interface{}) (result int) {
 	return 1
 }
 
-// PutIfAbsent puts value if the key is not exists and returns the number of updated key-value
+// PutIfAbsent 如果键不存在则返回值，并返回更新的键值对的个数
 func (dict *SyncDict) PutIfAbsent(key string, val interface{}) (result int) {
 	_, existed := dict.m.Load(key)
 	if existed {
@@ -48,7 +48,7 @@ func (dict *SyncDict) PutIfAbsent(key string, val interface{}) (result int) {
 	return 1
 }
 
-// PutIfExists puts value if the key is exist and returns the number of inserted key-value
+// PutIfExists 如果键存在，则写入值，并返回插入键值对的个数
 func (dict *SyncDict) PutIfExists(key string, val interface{}) (result int) {
 	_, existed := dict.m.Load(key)
 	if existed {
@@ -58,7 +58,7 @@ func (dict *SyncDict) PutIfExists(key string, val interface{}) (result int) {
 	return 0
 }
 
-// Remove removes the key and return the number of deleted key-value
+// Remove 删除键并返回已删除键值对的个数
 func (dict *SyncDict) Remove(key string) (result int) {
 	_, existed := dict.m.Load(key)
 	dict.m.Delete(key)
@@ -68,7 +68,7 @@ func (dict *SyncDict) Remove(key string) (result int) {
 	return 0
 }
 
-// Keys returns all keys in dict
+// Keys 返回字典中的所有key
 func (dict *SyncDict) Keys() []string {
 	result := make([]string, dict.Len())
 	i := 0
@@ -80,7 +80,7 @@ func (dict *SyncDict) Keys() []string {
 	return result
 }
 
-// ForEach traversal the dict
+// ForEach 遍历字典
 func (dict *SyncDict) ForEach(consumer Consumer) {
 	dict.m.Range(func(key, value interface{}) bool {
 		consumer(key.(string), value)
@@ -88,7 +88,7 @@ func (dict *SyncDict) ForEach(consumer Consumer) {
 	})
 }
 
-// RandomKeys randomly returns keys of the given number, may contain duplicated key
+// RandomKeys 随机返回给定数字的键，可能包含重复的键
 func (dict *SyncDict) RandomKeys(limit int) []string {
 	result := make([]string, limit)
 	for i := 0; i < limit; i++ {
@@ -101,7 +101,7 @@ func (dict *SyncDict) RandomKeys(limit int) []string {
 
 }
 
-// RandomDistinctKeys randomly returns keys of the given number, won't contain duplicated key
+// RandomDistinctKeys 随机返回给定数字的键，不会包含重复的键
 func (dict *SyncDict) RandomDistinctKeys(limit int) []string {
 	result := make([]string, limit)
 	i := 0
@@ -116,7 +116,7 @@ func (dict *SyncDict) RandomDistinctKeys(limit int) []string {
 	return result
 }
 
-// Clear removes all keys in dict
+// Clear 清空 dict
 func (dict *SyncDict) Clear() {
 	*dict = *MakeSyncDict()
 }

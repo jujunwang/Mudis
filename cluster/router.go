@@ -2,7 +2,7 @@ package cluster
 
 import "github.com/jujunwang/Mudis/interface/resp"
 
-// CmdLine is alias for [][]byte, represents a command line
+// CmdLine 代表一个命令
 type CmdLine = [][]byte
 
 func makeRouter() map[string]CmdFunc {
@@ -26,7 +26,7 @@ func makeRouter() map[string]CmdFunc {
 	return routerMap
 }
 
-// relay command to responsible peer, and return its reply to client
+// 将命令转发给负责的节点，并将其回复返回给客户端
 func defaultFunc(cluster *ClusterDatabase, c resp.Connection, args [][]byte) resp.Reply {
 	key := string(args[1])
 	peer := cluster.peerPicker.PickNode(key)

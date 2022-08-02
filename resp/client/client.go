@@ -12,18 +12,18 @@ import (
 	"time"
 )
 
-// Client is a pipeline mode redis client
+// Client 是一个流水线模式的客户端
 type Client struct {
 	conn        net.Conn
-	pendingReqs chan *request // wait to send
-	waitingReqs chan *request // waiting response
+	pendingReqs chan *request // 请求队列
+	waitingReqs chan *request // 回复队列
 	ticker      *time.Ticker
 	addr        string
-
-	working *sync.WaitGroup // its counter presents unfinished requests(pending and waiting)
+	//代表未完成的请求数
+	working *sync.WaitGroup
 }
 
-// request is a message sends to redis server
+// request 表是发送到服务器的消息类型
 type request struct {
 	id        uint64
 	args      [][]byte
@@ -38,7 +38,7 @@ const (
 	maxWait  = 3 * time.Second
 )
 
-// MakeClient creates a new client
+// MakeClient 新建一个client
 func MakeClient(addr string) (*Client, error) {
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
@@ -53,7 +53,7 @@ func MakeClient(addr string) (*Client, error) {
 	}, nil
 }
 
-// Start starts asynchronous goroutines
+// Start 一个异步的 goroutine
 func (client *Client) Start() {
 	client.ticker = time.NewTicker(10 * time.Second)
 	go client.handleWrite()
@@ -66,16 +66,16 @@ func (client *Client) Start() {
 	go client.heartbeat()
 }
 
-// Close stops asynchronous goroutines and close connection
+// Close 关闭异步的goroutine，并且关闭连接
 func (client *Client) Close() {
 	client.ticker.Stop()
-	// stop new request
+	// 拒绝新的请求
 	close(client.pendingReqs)
 
-	// wait stop process
+	// 等待关闭请求
 	client.working.Wait()
 
-	// clean
+	// 关闭连接
 	_ = client.conn.Close()
 	close(client.waitingReqs)
 }
@@ -115,7 +115,7 @@ func (client *Client) handleWrite() {
 	}
 }
 
-// Send sends a request to redis server
+// Send 向服务器发送消息
 func (client *Client) Send(args [][]byte) resp.Reply {
 	request := &request{
 		args:      args,

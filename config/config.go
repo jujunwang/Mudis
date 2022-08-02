@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// ServerProperties defines global config properties
+// ServerProperties 定义全局的配置属性
 type ServerProperties struct {
 	Bind           string `cfg:"bind"`
 	Port           int    `cfg:"port"`
@@ -24,11 +24,11 @@ type ServerProperties struct {
 	Self  string   `cfg:"self"`
 }
 
-// Properties holds global config properties
+// Properties 保存全局的配置属性
 var Properties *ServerProperties
 
 func init() {
-	// default config
+	// 默认配置
 	Properties = &ServerProperties{
 		Bind:       "127.0.0.1",
 		Port:       6379,
@@ -39,7 +39,7 @@ func init() {
 func parse(src io.Reader) *ServerProperties {
 	config := &ServerProperties{}
 
-	// read config file
+	// 读取配置文件
 	rawMap := make(map[string]string)
 	scanner := bufio.NewScanner(src)
 	for scanner.Scan() {
@@ -58,7 +58,7 @@ func parse(src io.Reader) *ServerProperties {
 		logger.Fatal(err)
 	}
 
-	// parse format
+	// 格式解析
 	t := reflect.TypeOf(config)
 	v := reflect.ValueOf(config)
 	n := t.Elem().NumField()
@@ -71,7 +71,7 @@ func parse(src io.Reader) *ServerProperties {
 		}
 		value, ok := rawMap[strings.ToLower(key)]
 		if ok {
-			// fill config
+			// 填写配置
 			switch field.Type.Kind() {
 			case reflect.String:
 				fieldVal.SetString(value)
@@ -94,7 +94,7 @@ func parse(src io.Reader) *ServerProperties {
 	return config
 }
 
-// SetupConfig read config file and store properties into Properties
+// SetupConfig 读取配置文件并且保存配置到 Properties
 func SetupConfig(configFilename string) {
 	file, err := os.Open(configFilename)
 	if err != nil {

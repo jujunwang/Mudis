@@ -7,7 +7,7 @@ import (
 	"github.com/jujunwang/Mudis/resp/reply"
 )
 
-// execDel removes a key from db
+// execDel 从数据库中删除给出的key
 func execDel(db *DB, args [][]byte) resp.Reply {
 	keys := make([]string, len(args))
 	for i, v := range args {
@@ -20,7 +20,7 @@ func execDel(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(int64(deleted))
 }
 
-// execExists checks if a is existed in db
+// execExists 查看指定key是否存在
 func execExists(db *DB, args [][]byte) resp.Reply {
 	result := int64(0)
 	for _, arg := range args {
@@ -33,14 +33,14 @@ func execExists(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(result)
 }
 
-// execFlushDB removes all data in current db
+// execFlushDB 清空数据库
 func execFlushDB(db *DB, args [][]byte) resp.Reply {
 	db.Flush()
 	db.addAof(utils.ToCmdLine2("flushdb", args...))
 	return &reply.OkReply{}
 }
 
-// execType returns the type of entity, including: string, list, hash, set and zset
+// execType 返回entity的类型, 包括: string, list, hash, set , zset
 func execType(db *DB, args [][]byte) resp.Reply {
 	key := string(args[0])
 	entity, exists := db.GetEntity(key)
@@ -62,7 +62,7 @@ func execType(db *DB, args [][]byte) resp.Reply {
 	return &reply.UnknownErrReply{}
 }
 
-// execRename a key
+// execRename 重命名
 func execRename(db *DB, args [][]byte) resp.Reply {
 	if len(args) != 2 {
 		return reply.MakeErrReply("ERR wrong number of arguments for 'rename' command")
@@ -80,7 +80,7 @@ func execRename(db *DB, args [][]byte) resp.Reply {
 	return &reply.OkReply{}
 }
 
-// execRenameNx a key, only if the new key does not exist
+// execRenameNx 当且仅当key不存在时，给key重命名
 func execRenameNx(db *DB, args [][]byte) resp.Reply {
 	src := string(args[0])
 	dest := string(args[1])
@@ -100,7 +100,7 @@ func execRenameNx(db *DB, args [][]byte) resp.Reply {
 	return reply.MakeIntReply(1)
 }
 
-// execKeys returns all keys matching the given pattern
+// execKeys 返回与给定模式匹配的所有 key
 func execKeys(db *DB, args [][]byte) resp.Reply {
 	pattern := wildcard.CompilePattern(string(args[0]))
 	result := make([][]byte, 0)

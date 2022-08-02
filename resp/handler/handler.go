@@ -1,7 +1,7 @@
 package handler
 
 /*
- * A tcp.RespHandler implements redis protocol
+ * tcp.RespHandler 实现了 RESP 协议的接口
  */
 
 import (
@@ -25,14 +25,14 @@ var (
 	unknownErrReplyBytes = []byte("-ERR unknown\r\n")
 )
 
-// RespHandler implements tcp.Handler and serves as a redis handler
+// RespHandler 实现了 tcp.Handler 并且作为一个 redis 服务器提供服务
 type RespHandler struct {
 	activeConn sync.Map // *client -> placeholder
 	db         databaseface.Database
 	closing    atomic.Boolean // refusing new client and new request
 }
 
-// MakeHandler creates a RespHandler instance
+// MakeHandler 新建一个 RespHandler 实例
 func MakeHandler() *RespHandler {
 	var db databaseface.Database
 	if config.Properties.Self != "" &&
@@ -53,10 +53,10 @@ func (h *RespHandler) closeClient(client *connection.Connection) {
 	h.activeConn.Delete(client)
 }
 
-// Handle receives and executes redis commands
+// Handle 接收并执行redis命令
 func (h *RespHandler) Handle(ctx context.Context, conn net.Conn) {
 	if h.closing.Get() {
-		// closing handler refuse new connection
+		// 关闭处理程序拒绝新的连接
 		_ = conn.Close()
 	}
 
@@ -103,7 +103,7 @@ func (h *RespHandler) Handle(ctx context.Context, conn net.Conn) {
 	}
 }
 
-// Close stops handler
+// Close 停止处理器
 func (h *RespHandler) Close() error {
 	logger.Info("handler shutting down...")
 	h.closing.Set(true)

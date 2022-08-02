@@ -8,14 +8,14 @@ import (
 	"time"
 )
 
-// Connection represents a connection with a redis-cli
+// Connection 代表一个与客户端的连接
 type Connection struct {
 	conn net.Conn
-	// waiting until reply finished
+	// 用于等待请求处理结束
 	waitingReply wait.Wait
-	// lock while handler sending response
+	// 用于发送响应时加锁
 	mu sync.Mutex
-	// selected db
+	// 切换DB
 	selectedDB int
 }
 
@@ -25,19 +25,19 @@ func NewConn(conn net.Conn) *Connection {
 	}
 }
 
-// RemoteAddr returns the remote network address
+// RemoteAddr 返回远端地址
 func (c *Connection) RemoteAddr() net.Addr {
 	return c.conn.RemoteAddr()
 }
 
-// Close disconnect with the client
+// Close 与客户端断开连接
 func (c *Connection) Close() error {
 	c.waitingReply.WaitWithTimeout(10 * time.Second)
 	_ = c.conn.Close()
 	return nil
 }
 
-// Write sends response to client over tcp connection
+// Write 通过TCP向客户端发送响应
 func (c *Connection) Write(b []byte) error {
 	if len(b) == 0 {
 		return nil
@@ -53,34 +53,33 @@ func (c *Connection) Write(b []byte) error {
 	return err
 }
 
-// GetDBIndex returns selected db
+// GetDBIndex 返回选中的DB
 func (c *Connection) GetDBIndex() int {
 	return c.selectedDB
 }
 
-// SelectDB selects a database
+// SelectDB 切换DB
 func (c *Connection) SelectDB(dbNum int) {
 	c.selectedDB = dbNum
 }
 
-// FakeConn implements redis.Connection for test
+// FakeConn 假的 redis server
 type FakeConn struct {
 	Connection
 	buf bytes.Buffer
 }
 
-// Write writes data to buffer
 func (c *FakeConn) Write(b []byte) error {
 	c.buf.Write(b)
 	return nil
 }
 
-// Clean resets the buffer
+// 清空缓存
 func (c *FakeConn) Clean() {
 	c.buf.Reset()
 }
 
-// Bytes returns written data
+// Bytes 返回写入的key
 func (c *FakeConn) Bytes() []byte {
 	return c.buf.Bytes()
 }

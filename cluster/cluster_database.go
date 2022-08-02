@@ -16,8 +16,8 @@ import (
 	"strings"
 )
 
-// ClusterDatabase represents a node of github.com/jujunwang/Mudis cluster
-// it holds part of data and coordinates other nodes to finish transactions
+// ClusterDatabase 代表集群的一个节点
+// 它保存部分数据并且协调其他节点完成服务
 type ClusterDatabase struct {
 	self string
 
@@ -27,7 +27,7 @@ type ClusterDatabase struct {
 	db             databaseface.Database
 }
 
-// MakeClusterDatabase creates and starts a node of cluster
+// MakeClusterDatabase 创建并启动集群的一个节点
 func MakeClusterDatabase() *ClusterDatabase {
 	cluster := &ClusterDatabase{
 		self: config.Properties.Self,
@@ -52,17 +52,19 @@ func MakeClusterDatabase() *ClusterDatabase {
 	return cluster
 }
 
-// CmdFunc represents the handler of a redis command
+// CmdFunc 代表集群中一个与redis命令绑定的处理函数
+// 集群版的command
 type CmdFunc func(cluster *ClusterDatabase, c resp.Connection, cmdAndArgs [][]byte) resp.Reply
 
-// Close stops current node of cluster
+// Close 将停止集群中的当前节点
 func (cluster *ClusterDatabase) Close() {
 	cluster.db.Close()
 }
 
 var router = makeRouter()
 
-// Exec executes command on cluster
+// Exec 在集群上执行命令
+// 这是解析后最先开始的工作
 func (cluster *ClusterDatabase) Exec(c resp.Connection, cmdLine [][]byte) (result resp.Reply) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -79,7 +81,7 @@ func (cluster *ClusterDatabase) Exec(c resp.Connection, cmdLine [][]byte) (resul
 	return
 }
 
-// AfterClientClose does some clean after client close connection
+// AfterClientClose 做关闭后的清理工作
 func (cluster *ClusterDatabase) AfterClientClose(c resp.Connection) {
 	cluster.db.AfterClientClose(c)
 }
