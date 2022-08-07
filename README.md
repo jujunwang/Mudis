@@ -26,4 +26,4 @@ golang的goroutine非常轻量，初始只需要 2-4k 的栈空间，并且利�
 
 基于分段锁设计实现ConcurrentHashMap：我们将 key 分散到固定数量的 shard 中避免 rehash 操作。shard 是有锁保护的 map, 当 shard 进行 rehash 时会阻塞shard内的读写，但不会对其他 shard 造成影响。
 
-代码在[github.com/jujunwang/Mudis/datastruct/dict/sync_dict_concurrenthashmap](https://github.com/jujunwang/Mudis/datastruct/dict/sync_dict_concurrenthashmap)
+代码在[github.com/jujunwang/Mudis/datastruct/dict/sync_dict_concurrenthashmap](https://github.com/jujunwang/Mudis/blob/master/datastruct/dict/sync_dict_concurrenthashmap.go)
