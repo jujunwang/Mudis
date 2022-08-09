@@ -2,7 +2,7 @@
 
 ---
 
-项目介绍：这是一个用go语言重写的Redis服务端程序，区别于Redis的单线程存储引擎，Mudis的存储引擎是并行的，并且在多线程的前提下，能够保证提供的各种操作是线程安全的，且支持了可回滚事务的特性。
+项目介绍：这是一个用go语言重写的Redis服务端程序，区别于Redis的单线程存储引擎，Mudis提供了多线程的文件事件处理器，并且在多线程的前提下，能够保证提供的各种操作是线程安全的，且支持了可回滚事务的特性。
 
 ---
 
@@ -16,7 +16,7 @@ golang的goroutine非常轻量，初始只需要 2-4k 的栈空间，并且利�
 
 ### Mudis单机版架构
 
-![mudis03](https://github.com/jujunwang/picture/blob/master/mudis03.png?raw=true)
+![000](https://github.com/jujunwang/picture/blob/master/Mudis000.png?raw=true)
 
 对于每一个客户端连接，Mudis均会分配一个goroutine处理连接请求，因此对于请求的处理是并行的，既然是并发的，那么就必须要考虑一个问题——**如何并发安全性**
 
