@@ -2,7 +2,7 @@
 
 ---
 
-项目介绍：Mudis(Multi-Reactor Redis)是一个用go语言实现的Redis服务端程序，区别于Redis的单线程存储引擎，Mudis的存储引擎是并行的，并且在多线程的前提下，能够保证提供的各种操作是线程安全的，因为充分利用了多核性能，理论上Mudis相较于Redis更适合需要处理大量数据的场景（如数据排序）
+项目介绍：Mudis(Multi-Reactor Redis)是一个用go语言实现的Redis服务端程序，区别于Redis的单线程存储引擎，Mudis的存储引擎是并行的，并且在多线程的前提下，能够保证提供的各种操作是线程安全的，因为充分利用了多核性能，理论上Mudis相较于Redis更适合需要处理大量数据的场景
 
 ---
 
@@ -39,3 +39,28 @@ redis虽然在6.0版本之后引入了多线程，但是多线程主要引入在
 sync.Map是golang官方在1.9版本引入的一个并发安全的map，适合读多写少的场景。因为在 m.dirty 刚被提升后会将 m.read 复制到新的 m.dirty 中，在数据量较大的情况下复制操作会阻塞所有协程，会造成严重的性能问题。
 
 因此，Mudis最终采用分段锁这样的低粒度锁的方案，来解决并发问题，并尽可能地降低对读写性能的影响。
+
+## 性能测试
+
+环境:
+
+Go version：1.18
+
+System: macOS Monterey 12.3.1
+
+CPU: 2 GHz 四核Intel Core i5
+
+Memory: 16 GB 3733 MHz LPDDR4X
+
+redis-benchmark 测试主要结果:
+
+```
+SET: 86714.87 requests per second
+GET: 81735.77 requests per second
+INCR: 98732.52 requests per second
+LPUSH: 88894.45 requests per second
+RPUSH: 95578.39 requests per second
+LPOP: 87981.72 requests per second
+RPOP: 89623.36 requests per second
+```
+
