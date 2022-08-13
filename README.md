@@ -40,8 +40,6 @@ redis虽然在文件事件处理器上应用了IO复用来提高文件事件的�
 
 基于分段锁设计实现ConcurrentHashMap：我们将 key 分散到固定数量的 shard 中避免 rehash 操作。shard 是有锁保护的 map, 当 shard 进行 rehash 时会阻塞shard内的读写，但不会对其他 shard 造成影响。
 
-代码在[github.com/jujunwang/Mudis/datastruct/dict/sync_dict_concurrenthashmap](https://github.com/jujunwang/Mudis/blob/master/datastruct/dict/sync_dict_concurrenthashmap.go)
-
 方案二：sync.Map
 
 sync.Map是golang官方在1.9版本引入的一个并发安全的map，适合读多写少的场景。因为在 m.dirty 刚被提升后会将 m.read 复制到新的 m.dirty 中，在数据量较大的情况下复制操作会阻塞所有协程，会造成严重的性能问题。
