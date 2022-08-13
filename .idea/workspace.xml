@@ -4,7 +4,14 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f846f68-b37e-4ccf-9b4d-1840e30f271c" name="Changes" comment="" />
+    <list default="true" id="1f846f68-b37e-4ccf-9b4d-1840e30f271c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/Mudis.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/database/set.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/datastruct/set/set.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -35,13 +42,13 @@
     "WebServerToolWindowFactoryState": "false",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/Users/xiaojun/Work/Mudis/database"
+    "last_opened_file_path": "/Users/xiaojun/Work/Mudis/datastruct"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/database" />
       <recent name="$PROJECT_DIR$/datastruct" />
+      <recent name="$PROJECT_DIR$/database" />
       <recent name="$PROJECT_DIR$/datastruct/dict" />
     </key>
   </component>
